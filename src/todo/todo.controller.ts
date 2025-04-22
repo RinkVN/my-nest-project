@@ -8,12 +8,17 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 @Controller('todos')
 @UseFilters(HttpExceptionFilter)
 export class TodoController {
-  constructor(private readonly todoService: TodoService) {} // DI: Tiêm TodoService
+  constructor(private readonly todoService: TodoService) {}
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
   findAll(@Query() filter: FilterTodoDto) {
     return this.todoService.findAll(filter);
+  }
+
+  @Get('completed') // Đảm bảo route này tồn tại
+  findCompleted() {
+    return this.todoService.findCompleted();
   }
 
   @Get(':id')

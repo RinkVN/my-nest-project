@@ -75,11 +75,38 @@
             </div>
         </div>
 
-        <!-- Danh sách Todos -->
-        <div class="card">
-            <div class="card-header">Todo List</div>
-            <div class="card-body">
-                <div id="todo-list"></div>
+        <!-- Tabs cho All Todos và Completed Todos -->
+        <ul class="nav nav-tabs mb-4" id="todoTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-todos-tab" data-bs-toggle="tab" data-bs-target="#all-todos"
+                    type="button" role="tab" aria-controls="all-todos" aria-selected="true">Todo List</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="completed-todos-tab" data-bs-toggle="tab" data-bs-target="#completed-todos"
+                    type="button" role="tab" aria-controls="completed-todos" aria-selected="false">Completed
+                    Todos</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="todoTabContent">
+            <!-- All Todos -->
+            <div class="tab-pane fade show active" id="all-todos" role="tabpanel" aria-labelledby="all-todos-tab">
+                <div class="card">
+                    <div class="card-header">Todo List</div>
+                    <div class="card-body">
+                        <div id="todo-list"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Completed Todos -->
+            <div class="tab-pane fade" id="completed-todos" role="tabpanel" aria-labelledby="completed-todos-tab">
+                <div class="card">
+                    <div class="card-header">Completed Todo List</div>
+                    <div class="card-body">
+                        <div id="completed-todo-list"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -91,32 +118,45 @@
 
         // Load todos on page load
         document.addEventListener('DOMContentLoaded', () => {
-            loadTodos();
+            loadTodos(); // Load all todos
+            loadCompletedTodos(); // Load completed todos
         });
 
-        // Load todos with optional filters
+        // Load all todos with optional filters
         async function loadTodos(filters = {}) {
             try {
                 const query = new URLSearchParams(filters).toString();
                 const response = await fetch(`${API_URL}${query ? '?' + query : ''}`);
                 if (!response.ok) throw new Error((await response.json()).message);
                 const todos = await response.json();
-                displayTodos(todos);
+                displayTodos(todos, 'todo-list');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Load completed todos
+        async function loadCompletedTodos() {
+            try {
+                const response = await fetch(`${API_URL}/completed`);
+                if (!response.ok) throw new Error((await response.json()).message);
+                const completedTodos = await response.json();
+                displayTodos(completedTodos, 'completed-todo-list');
             } catch (error) {
                 alert('Error: ' + error.message);
             }
         }
 
         // Display todos in the UI
-        function displayTodos(todos) {
-            const todoList = document.getElementById('todo-list');
+        function displayTodos(todos, listId) {
+            const todoList = document.getElementById(listId);
             todoList.innerHTML = todos.length ? '' : '<p>No todos found.</p>';
             todos.forEach(todo => {
                 const todoItem = document.createElement('div');
                 todoItem.className = 'todo-item d-flex justify-content-between align-items-center p-2 border rounded';
                 todoItem.innerHTML = `
           <div>
-            <h5 class="${todo.completed ? 'completed' : ''} mb-1">${todo.title}</h5>
+            <h5 class="${todo.completed ? 'completed' : ''} mb-1">${todo.title || 'Untitled'}</h5>
             <p class="mb-0">${todo.description || 'No description'}</p>
             <small>Created: ${new Date(todo.createdAt).toLocaleString()}</small>
           </div>
@@ -145,7 +185,8 @@
                     body: JSON.stringify({ title, description, completed }),
                 });
                 if (!response.ok) throw new Error((await response.json()).message);
-                loadTodos(); // Reload todos
+                loadTodos(); // Reload all todos
+                loadCompletedTodos(); // Reload completed todos
                 e.target.reset(); // Reset form
             } catch (error) {
                 alert('Error: ' + error.message);
@@ -173,7 +214,8 @@
                     body: JSON.stringify({ completed }),
                 });
                 if (!response.ok) throw new Error((await response.json()).message);
-                loadTodos(); // Reload todos
+                loadTodos(); // Reload all todos
+                loadCompletedTodos(); // Reload completed todos
             } catch (error) {
                 alert('Error: ' + error.message);
             }
@@ -187,7 +229,8 @@
                     method: 'DELETE',
                 });
                 if (!response.ok) throw new Error((await response.json()).message);
-                loadTodos(); // Reload todos
+                loadTodos(); // Reload all todos
+                loadCompletedTodos(); // Reload completed todos
             } catch (error) {
                 alert('Error: ' + error.message);
             }
